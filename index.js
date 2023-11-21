@@ -4,12 +4,9 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const app = express();
 const cookieParser = require('cookie-parser')
-const port = process.env.PORT || 5000;
-//dot environment config
 require('dotenv').config()
-
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
+const port = process.env.PORT || 5000;
 
 // middlewars
 app.use(cors());
