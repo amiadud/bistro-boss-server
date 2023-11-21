@@ -1,7 +1,8 @@
-const cors = require('cors');
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const app = express();
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
@@ -10,32 +11,9 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-//verify token with middlewares //step:2
-const logger = (req,res, next) => {
-  if (!req.headers.authorization){
-    return res.status(401).send({message: 'unauthorized access'});
-  }
-  next();
-}
-
-//step:3
-
-const VerifyToken = (req, res, next) => {
-  // console.log('inside verify token',req.headers.authorization.split(' ')[1]);
-  const token = req.headers.authorization.split(' ')[1];
-  // console.log(token);
-  jwt.verify(token, process.env.SECRET_KEY, (err, decoded)=> {
-    if(err){
-      return res.status(401).send({message: 'unauthorized access'});
-    }
-    req.decoded = decoded
-    next();
-  })
-}
-
 
 // const uri = `mongodb://localhost:27017/`
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.35itrev.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -46,9 +24,6 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
-
-
-
 
 async function run() {
   try {
@@ -69,6 +44,29 @@ async function run() {
       res.send({ token })
 
     })
+
+    //verify token with middlewares //step:2
+    const logger = (req,res, next) => {
+      if (!req.headers.authorization){
+        return res.status(401).send({message: 'unauthorized access'});
+      }
+      next();
+    }
+
+//step:3
+    const VerifyToken = (req, res, next) => {
+      // console.log('inside verify token',req.headers.authorization.split(' ')[1]);
+      const token = req.headers.authorization.split(' ')[1];
+      // console.log(token);
+      jwt.verify(token, process.env.SECRET_KEY, (err, decoded)=> {
+        if(err){
+          return res.status(401).send({message: 'unauthorized access'});
+        }
+        req.decoded = decoded
+        next();
+      })
+    }
+
 
     // use verify admin after verifytoken
 
