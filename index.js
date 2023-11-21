@@ -1,5 +1,4 @@
 const cors = require('cors');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const app = express();
@@ -36,6 +35,7 @@ const VerifyToken = (req, res, next) => {
 
 
 // const uri = `mongodb://localhost:27017/`
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.35itrev.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -58,12 +58,7 @@ async function run() {
     const cartCollection = client.db('bistroDB').collection('carts');
     
     app.get('/', (req, res) => {
-        try{
-            res.send("Stared my Bistro boss Server")
-            
-        }catch(err){
-            console.log(err.message);
-        }
+      res.send("Stared my Bistro boss Server")
     })
 
     
