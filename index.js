@@ -60,6 +60,7 @@ async function run() {
     const usersCollection = client.db('bistroDB').collection('users');
     const menuCollection = client.db('bistroDB').collection('menu');
     const cartCollection = client.db('bistroDB').collection('carts');
+    const paymentCollection = client.db('bistroDB').collection('payInfo');
     
     app.get('/', (req, res) => {
       res.send("Stared my Bistro boss Server")
@@ -303,6 +304,33 @@ async function run() {
       clientSecret: paymentIntent.client_secret
     })
      });
+
+     //payment related api
+
+     app.get('/payments/:email', VerifyToken, async (req, res) => {
+      const query = {email: req.params.email}
+      if (req.params.email !== req.decoded.email){
+        return res.status(403).send({message: 'forbidden access'});
+      }
+      const result = await paymentCollection.find(query).toArray();
+      res.send(result)
+     })
+
+     app.post ('/payments', async (req, res) => {
+      const payment = req.body;
+      const paymentResult = await paymentCollection.insertOne(payment);
+      console.log(payment);
+      const query = {_id: {
+        $in: payment.cartId.map(id => new ObjectId(id))
+      }}
+
+      const deleteResult = await cartCollection.deleteMany(query)
+
+      res.send({paymentResult, deleteResult});
+
+     })
+
+    
 
 
     // Send a ping to confirm a successful connection
