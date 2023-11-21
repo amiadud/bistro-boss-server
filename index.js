@@ -3,7 +3,6 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const app = express();
-const cookieParser = require('cookie-parser')
 require('dotenv').config()
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
@@ -11,7 +10,6 @@ const port = process.env.PORT || 5000;
 // middlewars
 app.use(cors());
 app.use(express.json());
-app.use(cookieParser())
 
 //verify token with middlewares //step:2
 const logger = (req,res, next) => {
