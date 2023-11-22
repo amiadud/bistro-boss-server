@@ -16,8 +16,9 @@ const config = {
 }
  
 // middlewars
-app.use(cors(config));
 app.use(express.json());
+app.use(cors(config));
+
 
 
 
@@ -70,6 +71,7 @@ async function run() {
       res.send("Stared my Bistro boss Server")
     })
 
+
     //step:1
     app.post('/jwt', async(req, res) => {
       const user = req.body
@@ -82,6 +84,9 @@ async function run() {
 
     const verifyAdmin = async(req, res, next) => {
       const email = req.decoded.email
+      if(!email){
+        return res.status(401).send({ message: 'forbidden accessd' })
+      }
       console.log('Admin Mail', email);
       const query = { email: email }
       const user = await usersCollection.findOne(query);
@@ -333,7 +338,71 @@ async function run() {
       res.send({paymentResult, deleteResult});
 
      })
+     
+     //stats or analytics
 
+     app.get('/admin-stats', VerifyToken, verifyAdmin,  async (req, res) => {
+      const users = await usersCollection.estimatedDocumentCount();
+      const menuItems = await menuCollection.estimatedDocumentCount();
+      const orders = await paymentCollection.estimatedDocumentCount();
+
+      const result = await paymentCollection.aggregate( [
+        {
+          $group: {
+            _id: null,
+            totalRevenue: {
+              $sum: '$price'
+            }
+          }
+        }
+      ]).toArray();
+      
+      const revenue = result.length > 0 ? result[0].totalRevenue : 0;
+      res.send({users, menuItems, orders, revenue});
+     });
+
+     // using aggregate pipeline
+
+     app.get('/order-stats', VerifyToken, verifyAdmin, async (req, res) => {
+      const result = await paymentCollection.aggregate([
+        {
+          $unwind: '$menuId'
+        },
+        {
+          $lookup: {
+            from: 'menu',
+            localField: 'menuId',
+            foreignField: '_id',
+            as: 'menuItems'
+          }
+        },
+        {
+          $unwind: '$menuItems',
+        },
+        {
+          $group: {
+
+            _id: '$menuItems.category',
+            quantity: { $sum: 1 },
+            revenue: {$sum: '$menuItems.price'}
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            category: '$_id',
+            quantity: '$quantity',
+            revenue: '$revenue'
+
+          }
+        }
+
+      ]).toArray()
+
+      res.send(result)
+
+     })
+    
     
 
 
