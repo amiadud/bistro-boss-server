@@ -10,9 +10,13 @@ const port = process.env.PORT || 5000;
 //dot environment config
 require('dotenv').config()
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+const config = {
+  origin: ['https://bistro-boss-two.vercel.app', 'http://localhost:5173']
+}
  
 // middlewars
-app.use(cors());
+app.use(cors(config));
 app.use(express.json());
 
 
